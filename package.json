@@ -1,0 +1,6 @@
+{
+  "name": "route-spec",
+  "version": "1.0.0",
+  "type": "module",
+  "main": ".opencode/plugins/route-spec.js"
+}
