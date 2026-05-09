@@ -1,156 +1,156 @@
 ---
 name: exec-plan
-description: 在 RouteSpec 工作流中执行 plan.md 或实施已定位的小型改动。当 route-lookup、plan 或 design 建议进入编码阶段时加载。
+description: Execute plan.md or implement small, located changes within the RouteSpec workflow. Load when route-lookup, plan, or design suggests entering the coding phase.
 ---
 
 # Exec Plan
 
-执行 `plan.md`，或对小型明确任务直接实施代码修改。
+Execute `plan.md`, or directly implement code modifications for small, clear tasks.
 
-## 核心原则
+## Core Principles
 
-- 优先做最小正确修改。
-- 有计划时按计划执行；无计划的小任务先形成内部简短执行说明，必要时再向用户简述。
-- 遇到阻塞问题才暂停；非阻塞不确定点记录为 Assumptions 并继续。
-- 修改后必须验证；无法验证时说明原因。
-- 功能新增、删除、行为变化、重构、关键 bug 修复后必须判断是否导致功能入口、核心实现或关键测试入口变化；确认变化时才需要 `route-sync`。
-- 根据任务复杂度决定是否调用子代理；根据任务相关性决定哪些任务合并交给同一个子代理执行。
-- 主线程负责子代理任务划分、集成、最终判断和用户交付。
-- 完成实现后必须执行一次任务审查，优先发现遗漏、回归风险和验证缺口。
-- 除小型、局部、低风险改动外，中大型改动完成后必须启动专门用于审核的子代理；主线程负责复核审核结论并处理明确问题。
+- Prioritize making the minimal correct change.
+- When a plan exists, follow the plan; for small tasks without a plan, form a brief internal execution note first, and briefly describe it to the user if necessary.
+- Only pause for blocking issues; non-blocking uncertainties are recorded as Assumptions and execution continues.
+- Modifications must be verified after completion; when verification is not possible, explain the reason.
+- After adding, deleting, or changing feature behavior, refactoring, or fixing critical bugs, must determine whether the change affects feature entries, core implementations, or critical test entry points; only proceed with `route-sync` when changes are confirmed.
+- Sub-agents must be used for all plan-based execution; even when tasks must be executed serially with no parallelizable groups, delegate implementation to sub-agents whenever the plan involves extensive code changes. The main thread must not implement code directly for plan-based execution — it only divides, dispatches, reviews, and integrates.
+- The main thread is responsible for sub-agent task division, integration, final judgment, and user delivery.
+- After implementation is complete, a task review must be performed to prioritize finding omissions, regression risks, and verification gaps.
+- For anything other than small, localized, low-risk changes, a dedicated review sub-agent must be launched after completing medium-to-large changes; the main thread is responsible for reviewing the audit conclusions and handling confirmed issues.
 
-## 工作流
+## Workflow
 
-1. 读取上下文：
-    - 有任务目录时读取 `design.md`、`plan.md`、最新 `plan-fix{n}.md`。
-    - `plan-fix{n}.md` 按编号最大值判定最新；执行前检查 `plan.md` 和所有 `plan-fix*.md` 的未完成项，实际执行以最新修复计划和未关闭问题为准。
-    - 小型直接改动时读取 `route-lookup` 结果和相关代码。
-2. 读取 `plan.md` 中的任务相关性；无 `plan.md` 的小任务按默认主线程执行，除非实际发现复杂度需要拆分。
-3. 根据任务复杂度判断是否调用子代理，并根据任务相关性制定子代理任务分组。
-4. 输出或维护简短任务列表，仅覆盖本次要做的修改和验证；小任务默认内部维护，除非用户需要或任务风险值得说明。
-5. 执行代码修改，保持原有风格，不顺手重构。
-6. 运行相关验证：优先测试、类型检查、lint 或能证明改动正确的最小命令。
-7. 执行任务审查：对照 `design.md`、`plan.md`、实际 diff 和验证结果，检查遗漏、风险和测试缺口。
-8. 检查结果：
-    - 通过：进入完成摘要。
-    - 明确 bug 或遗漏：直接修复并再次验证。
-    - 多轮仍无法解决：有任务目录时写入 `unresolved-issues.md`；小任务无任务目录时在摘要中说明阻塞原因。
-9. 判断 route-sync：`yes` / `no` / `uncertain`。如确认功能入口、核心实现或关键测试入口变化，继续加载 `route-sync` 完成同步检查；如为 `no`，说明无需同步的原因。
+1. Read context:
+    - When a task directory exists, read `design.md`, `plan.md`, and the latest `plan-fix{n}.md`.
+    - `plan-fix{n}.md` is determined as latest by the highest number; before execution, check unfinished items in `plan.md` and all `plan-fix*.md` — actual execution follows the latest fix plan and unclosed issues.
+    - For small direct changes, read the `route-lookup` results and related code.
+2. Read task relationships in `plan.md`; for small tasks without `plan.md`, execute on the main thread by default unless complexity is discovered that requires splitting.
+3. When executing a `plan.md`, sub-agents are required — formulate sub-agent task groupings based on task relatedness; even serial-only execution must use sub-agents for implementation. Only small tasks without a plan may execute directly on the main thread.
+4. Output or maintain a brief task list covering only the modifications and verifications to be done this time; small tasks default to internal maintenance unless the user needs it or the task risk warrants explanation.
+5. Execute code modifications, maintaining original style without opportunistic refactoring.
+6. Run related verification: prioritize tests, type checking, lint, or the minimal commands that can prove the changes are correct.
+7. Perform task review: check against `design.md`, `plan.md`, actual diff, and verification results for omissions, risks, and test gaps.
+8. Check results:
+    - Pass: proceed to completion summary.
+    - Clear bug or omission: fix directly and verify again.
+    - Still unresolved after multiple rounds: if a task directory exists, write to `unresolved-issues.md`; for small tasks without a task directory, explain the blocking reason in the summary.
+9. Determine route-sync: `yes` / `no` / `uncertain`. If feature entries, core implementations, or critical test entry points are confirmed to have changed, proceed to load `route-sync` to complete the sync check; if `no`, explain the reason why sync is not needed.
 
-## 子代理执行规则
+## Sub-agent Execution Rules
 
-先按任务复杂度决定是否调用子代理：
+First, determine whether sub-agents are required:
 
-- 默认不为小型、局部、单文件或强连续判断的任务调用子代理。
-- 当任务数量多、涉及多模块、多验证入口、需要大量探索或可并行补测试时，优先考虑调用子代理。
-- 当任务边界不清、会频繁修改同一文件、需要主线程持续决策或存在高概率编辑冲突时，不调用或减少子代理。
+- Sub-agents are required for all plan-based execution, regardless of whether tasks can be parallelized. Even when all tasks must run serially (e.g., shared files, sequential dependencies), implementation must be delegated to sub-agents — the main thread only divides, dispatches, reviews results, and integrates.
+- Sub-agents are strongly preferred for complex or extensive code changes even without a formal `plan.md`.
+- Sub-agents may be skipped only for small, localized, single-file, low-risk tasks without a plan.
 
-再根据任务相关性决定分组：
+Then determine grouping and execution order based on task relatedness:
 
-- 强相关任务应合并给同一个子代理，或由主线程连续执行，避免上下文割裂。
-- 弱相关任务可按文件范围、功能链路或验证入口合并，减少子代理数量和集成成本。
-- 无直接相关且可独立验证的复杂任务，应优先拆给不同子代理并行执行。
-- 存在冲突风险的任务不得并行编辑同一文件；如仍需子代理处理，必须串行执行并由主线程复核 diff。
-- 探索、实现、补测试和审查可以拆分，但同一行为链路的实现与测试通常应合并，除非测试边界完全独立。
+- Strongly related tasks should be combined for the same sub-agent to avoid context fragmentation; when combined tasks must run serially due to file conflicts or dependencies, the sub-agent executes them sequentially in the correct order.
+- Weakly related tasks can be combined by file scope, feature chain, or verification entry point to reduce the number of sub-agents and integration cost.
+- Complex tasks with no direct relation and independently verifiable should be prioritized for splitting to different sub-agents for parallel execution.
+- Tasks with conflict risk must not edit the same file in parallel; assign them to a single sub-agent for serial execution, and the main thread reviews the diff afterward.
+- Exploration, implementation, test supplementation, and review can be split, but implementation and testing of the same behavior chain should usually be combined unless test boundaries are completely independent.
 
-子代理任务必须包含清晰的输入文件、修改范围、禁止触碰范围、预期输出和验证方式。子代理只能负责探索、局部实现、补测试、验证或审查建议；主线程必须复核其结果、处理集成冲突、运行最终验证，并承担最终交付责任。
+Sub-agent tasks must include clear input files, modification scope, prohibited areas, expected output, and verification method. Sub-agents can only be responsible for exploration, localized implementation, test supplementation, verification, or review suggestions; the main thread must review their results, handle integration conflicts, run final verification, and bear final delivery responsibility.
 
-## 小任务执行说明
+## Small Task Execution Note
 
 ```md
-# 简短执行说明
+# Brief Execution Note
 
-## 目标
+## Objective
 - ...
 
-## 修改范围
+## Modification Scope
 - ...
 
-## 验证方式
+## Verification Method
 - ...
 
-## 执行策略
-- 子代理使用：默认不使用 / 计划使用（复杂度原因）
-- 任务分组：无 / ...
+## Execution Strategy
+- Sub-agent usage: required (plan-based) / default none (small, no plan)
+- Task grouping: none / ...
 
 ## RouteSync
 - Need route-sync: yes / no / uncertain
 ```
 
-## 任务审查
+## Task Review
 
-实现和验证后必须进行一次审查，审查重点按优先级排列：
+A review must be conducted after implementation and verification, with review priorities as follows:
 
-1. 需求覆盖：`plan.md` 中每个任务是否完成，未完成项是否有明确原因。
-2. 行为风险：是否引入未计划的行为变化、边界遗漏、兼容性问题或错误处理缺口。
-3. 代码范围：是否修改了无关文件，是否顺手重构，是否触碰用户已有无关改动。
-4. 验证充分性：测试、类型检查、lint 或手动验证是否覆盖本次风险；无法验证时原因是否可信。
-5. 路由图影响：是否涉及需要 `route-sync` 的功能入口、核心实现或关键测试入口变化。
+1. Requirement coverage: Whether each task in `plan.md` is completed, and whether incomplete items have clear reasons.
+2. Behavioral risks: Whether unplanned behavior changes, boundary omissions, compatibility issues, or error handling gaps have been introduced.
+3. Code scope: Whether unrelated files were modified, whether opportunistic refactoring occurred, whether the user's existing unrelated changes were touched.
+4. Verification adequacy: Whether tests, type checking, lint, or manual verification cover the current risks; whether reasons for inability to verify are credible.
+5. Route map impact: Whether changes involve feature entries, core implementations, or critical test entry points that require `route-sync`.
 
-除小型、局部、低风险改动外，中大型改动完成后必须启动专门用于审核的子代理。审核子代理只负责发现问题和风险，不直接修改文件；主线程必须复核其结论，明确问题直接修复并再次验证，非阻塞风险记录在摘要或修复计划中。
+For anything other than small, localized, low-risk changes, a dedicated review sub-agent must be launched after completing medium-to-large changes. The review sub-agent is only responsible for discovering issues and risks, not for directly modifying files; the main thread must review its conclusions, fix confirmed issues directly and verify again, and record non-blocking risks in the summary or fix plan.
 
-审查发现明确问题时，优先直接修复并再次验证；只在计划遗漏、验收不满足、明确回归风险或测试缺口需要单独跟踪时生成 `plan-fix{n}.md`。
+When the review discovers confirmed issues, prioritize fixing them directly and verifying again; only generate `plan-fix{n}.md` when there are plan omissions, unmet acceptance criteria, clear regression risks, or test gaps requiring separate tracking.
 
-## 规模升级
+## Scope Escalation
 
-执行过程中发现改动范围显著超出预期（例如涉及新模块、新架构、跨多文件行为变化）时：
+When it is discovered during execution that the change scope significantly exceeds expectations (e.g., involving new modules, new architecture, cross-file behavior changes):
 
-1. 暂停当前执行。
-2. 向用户说明升级原因：原本预期的影响范围 vs 实际发现的影响范围。
-3. 建议先加载 `design` 技能确认方案，再加载 `plan` 技能生成 `plan.md` 后继续。
+1. Pause current execution.
+2. Explain the escalation reason to the user: originally expected impact scope vs. actually discovered impact scope.
+3. Recommend loading the `design` skill first to confirm the solution, then loading the `plan` skill to generate `plan.md` before continuing.
 
-小范围波动（多改 1-2 个文件、补充少量边界处理）不需要升级，直接执行并说明即可。
+Small scope fluctuations (modifying 1-2 more files, adding minor boundary handling) do not require escalation — execute directly and explain.
 
-## 修复计划规则
+## Fix Plan Rules
 
-- 只有在存在 `plan.md` 且发现计划遗漏、验收不满足、明确回归风险或测试缺口时，才生成 `plan-fix{n}.md`。
-- `plan-fix{n}.md` 必须引用 `plan.md` 中的稳定任务 ID；新增修复任务可继续使用 `F1`、`F2` 等稳定 ID。
-- 小任务通常不生成 fix plan，直接修复并在摘要中说明。
-- 修复上限默认 3 轮。用户可通过"放宽修复上限"或指定具体轮数来覆盖默认值。有任务目录时必须记录到 `unresolved-issues.md`，小任务无任务目录时记录在摘要中。
+- Only generate `plan-fix{n}.md` when a `plan.md` exists and plan omissions, unmet acceptance criteria, clear regression risks, or test gaps are discovered.
+- `plan-fix{n}.md` must reference stable task IDs from `plan.md`; new fix tasks can continue using stable IDs like `F1`, `F2`, etc.
+- Small tasks typically do not generate fix plans — fix directly and explain in the summary.
+- Fix limit defaults to 3 rounds. The user can override the default by "relaxing the fix limit" or specifying a specific number. When a task directory exists, it must be recorded in `unresolved-issues.md`; for small tasks without a task directory, record in the summary.
 
-## 完成检查
+## Completion Checklist
 
-完成前确认：
+Before completion, confirm:
 
-- 计划或执行说明中的任务已完成，或明确列出未完成原因。
-- 有任务目录时，已同步维护 `plan.md` 或最新 `plan-fix{n}.md` 中的任务完成状态。
-- 已按复杂度判断子代理使用情况，按任务相关性完成分组，并复核所有子代理结果。
-- 已完成任务审查；如为中大型改动，已启动专门审核子代理并复核结论。审查发现的问题已修复或记录。
-- 相关验证已运行，或说明无法运行原因。
-- 本次改动是否需要 route-sync 已判断；如为 `yes` 或 `uncertain`，已继续加载 `route-sync` 完成同步检查。
-- 如执行了 route-sync，最终摘要必须包含实际同步结果和修改的路由图文件；如未能完成，说明失败原因或未确认内容。
-- 未修改无关文件，未回退用户已有改动。
+- Tasks in the plan or execution note are completed, or incomplete reasons are clearly listed.
+- When a task directory exists, task completion status in `plan.md` or the latest `plan-fix{n}.md` has been maintained.
+- Sub-agent usage has been determined based on complexity, task grouping based on relatedness is complete, and all sub-agent results have been reviewed.
+- Task review is complete; for medium-to-large changes, a dedicated review sub-agent has been launched and its conclusions reviewed. Issues found in the review have been fixed or recorded.
+- Related verification has been run, or the reason for not running it has been explained.
+- Whether route-sync is needed for this change has been determined; if `yes` or `uncertain`, `route-sync` has been loaded to complete the sync check.
+- If route-sync was executed, the final summary must include the actual sync results and modified route map files; if unable to complete, explain the failure reason or unconfirmed content.
+- No unrelated files were modified, and the user's existing changes were not reverted.
 
-## 输出格式
+## Output Format
 
 ```md
-# 执行摘要
+# Execution Summary
 
-## 结果
-- 完成 / 部分完成 / 未完成
+## Result
+- Complete / Partially complete / Not complete
 
-## 变更文件
-- `path/to/file`：修改说明
+## Changed Files
+- `path/to/file`: modification description
 
-## 验证
-- 命令：...
-- 结果：通过 / 失败 / 未运行（原因）
+## Verification
+- Command: ...
+- Result: passed / failed / not run (reason)
 
-## 执行策略
-- 子代理使用：未使用 / 已使用（原因）
-- 任务分组：无 / ...
-- 复核结果：...
+## Execution Strategy
+- Sub-agent usage: required for plan execution / not used (small task, no plan)
+- Task grouping: none / ...
+- Review results: ...
 
-## 任务审查
-- 结论：通过 / 发现并已修复 / 存在遗留问题
-- 关注点：...
+## Task Review
+- Conclusion: passed / issues found and fixed / remaining issues
+- Concerns: ...
 
 ## RouteSync
 - Need route-sync: yes / no / uncertain
-- 影响功能：...
-- 同步结果：未执行 / 已更新 / 无需更新 / partial / uncertain / 失败（原因）
-- 路由图文件：无 / `docs/routespec/...`
+- Affected features: ...
+- Sync result: not executed / updated / no update needed / partial / uncertain / failed (reason)
+- Route map files: none / `docs/routespec/...`
 
-## 遗留问题
-- 无 / ...
+## Remaining Issues
+- None / ...
 ```

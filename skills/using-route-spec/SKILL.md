@@ -1,27 +1,27 @@
 ---
 name: using-route-spec
-description: RouteSpec 引导技能。编码任务必须先加载 route-lookup，再按其指引选择后续流程。
+description: RouteSpec workflow guide. All coding tasks must load route-lookup first, then follow its guidance for subsequent steps.
 ---
 
-# RouteSpec 工作流引导
+# RouteSpec Workflow Guide
 
-RouteSpec 是一套 AI 编码工作流技能组，通过功能路由图快速定位代码，按任务规模选择合适的执行流程。
+RouteSpec is a suite of AI coding workflow skills that quickly locate code through feature route maps and select appropriate execution flows based on task scale.
 
-## 核心规则
+## Core Rule
 
-**编码任务必须先加载 `route-lookup`，再按其指引选择后续流程。**
+**All coding tasks must load `route-lookup` first, then follow its guidance for subsequent steps.**
 
-## 工作流总览
+## Workflow Overview
 
-1. **route-lookup** — 查询功能路由图，定位相关代码（所有编码任务必经入口）
-2. **route-init** — 首次创建功能路由图（路由图不存在时由 route-lookup 自动触发）
-3. **design** — 需求澄清与方案设计（中大型任务或范围不清时）
-4. **plan** — 生成执行计划（design 确认后）
-5. **exec-plan** — 执行计划或直接实施小型改动
-6. **route-sync** — 同步功能路由图（功能变更完成后）
+1. **route-lookup** — Query the feature route map to locate relevant code (mandatory entry point for all coding tasks)
+2. **route-init** — Create the feature route map for the first time (auto-triggered by route-lookup when the route map does not exist)
+3. **design** — Requirement clarification and solution design (for medium-to-large tasks or unclear scope)
+4. **plan** — Generate execution plan (after design is confirmed)
+5. **exec-plan** — Execute the plan or directly implement small changes
+6. **route-sync** — Sync the feature route map (after feature changes are completed)
 
-## 流转规则
+## Flow Rules
 
-- 小型明确修改（typo、格式、依赖升级等）→ route-lookup → exec-plan
-- 中大型或范围不清的任务 → route-lookup → design → plan → exec-plan
-- 功能变更完成后 → route-sync
+- Small, clear changes (typos, formatting, dependency upgrades, etc.) → route-lookup → exec-plan
+- Medium-to-large or unclear tasks → route-lookup → design → plan → exec-plan
+- After feature changes are completed → route-sync

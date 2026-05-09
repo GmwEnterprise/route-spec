@@ -1,92 +1,92 @@
 ---
 name: route-sync
-description: 同步、废弃或审计功能路由图；仅在用户明确要求整理归档时执行归档。适用于核心功能新增或删除、功能入口变化、核心实现迁移、关键测试入口变化，以及用户要求检查路由图是否过期时触发。
+description: Sync, deprecate, or audit the feature route map; only archive when the user explicitly requests organizing and archiving. Triggered when core features are added or removed, feature entries change, core implementations migrate, critical test entry points change, or when the user requests checking if the route map is outdated.
 ---
 
 # Route Sync
 
-让功能路由图与当前代码定位信息保持一致。只有确认定位信息发生变化时才修改文档；如已确认变化但部分字段未知，只更新已确认信息，未知字段标记为 `uncertain`。
+Keep the feature route map consistent with current code location information. Only modify the document when location information changes are confirmed; if changes are confirmed but some fields are unknown, only update confirmed information and mark unknown fields as `uncertain`.
 
-## 核心原则
+## Core Principles
 
-- 功能路由图不是完整代码索引或功能知识库，只记录下次修改功能时最值得先读的位置。
-- 实际代码变更优先于计划文档。
-- 无法确认的信息写 `未知`、`uncertain` 或直接省略，不得编造。
-- 默认只改相关条目，不为统一样式而重写整个路由图。
-- 如路由图结构影响当前任务定位，可以做局部结构调整：补充 `模块索引`、把相关条目放到对应模块下，或在目录模式中补充模块到文件映射；不得为了统一样式重写无关条目。
-- 默认只修改 RouteSpec 文档，不修改业务代码。
+- The feature route map is not a complete code index or feature knowledge base; it only records the most valuable locations to read first when modifying a feature next time.
+- Actual code changes take priority over planning documents.
+- Information that cannot be confirmed should be written as `uncertain` or simply omitted — never fabricate.
+- By default, only modify related entries; do not rewrite the entire route map for style consistency.
+- If route map structure affects current task location lookup, local structural adjustments are allowed: supplement the `Module Index`, place related entries under the corresponding module, or add module-to-file mappings in directory mode; do not rewrite unrelated entries for style consistency.
+- By default, only modify RouteSpec documents, not business code.
 
-## 何时需要检查
+## When to Check
 
-以下情况必须检查 route-sync，且只有本次任务确认导致定位信息变化时才修改路由图：
+Route-sync must be checked in the following cases, and the route map should only be modified when the current task confirms that location information has changed:
 
-- 新增或删除核心功能。
-- 功能入口文件变化。
-- 核心实现文件迁移。
-- 关键测试入口新增、删除、迁移或重命名。
-- 路由图指向明显过期。
-- 路由图缺少模块层级，导致当前任务无法通过模块或入口稳定定位。
+- Core features added or removed.
+- Feature entry file changed.
+- Core implementation file migrated.
+- Critical test entry added, removed, migrated, or renamed.
+- Route map clearly outdated.
+- Route map missing module hierarchy, causing the current task to be unable to locate through modules or entries stably.
 
-以下情况通常只需说明无需修改：内部实现细节调整、格式化、注释、普通文案、日志、不改变定位路径的小型重构、单纯补充测试但不影响关键测试入口。
+The following cases typically only need to explain why no modification is needed: internal implementation detail adjustments, formatting, comments, general copy, logging, small refactoring that doesn't change location paths, and adding tests without affecting critical test entry points.
 
-## 工作流
+## Workflow
 
-1. 读取功能路由图：默认 `docs/routespec/feature-routes.md` 或 `docs/routespec/feature-routes/`。
-2. 收集本次任务信息：实际变更文件、`git diff`、测试结果、执行摘要、`plan.md`、`design.md`、用户说明。
-   - 如实现未完成或验证失败，只能同步已确认的定位变化；存在未验证路径时必须标记为 `uncertain`，不得输出确定的“已更新”。
-3. 判断是否需要修改：
-   - 不需要：输出原因，不改文件。
-   - 需要：更新已有功能定位条目，或新增功能定位条目。
-   - 不确定是否发生变化：不改文件，只输出未确认内容。
-   - 确认发生变化但部分字段未知：更新已确认信息，未知字段标记为 `uncertain`。
-4. 处理废弃或移除功能：
-   - 功能仍在但不推荐使用：在备注中说明已废弃。
-   - 功能已删除或被替代：删除或移动相关定位条目；需要保留时只记录原入口和替代功能。
-   - 只有用户明确要求整理归档时，才移动到 `feature-routes-archive.md`。
-5. 修改内容优先与已有路由图的条目格式保持一致；如需要结构调整，按 `route-init` 的“项目概览 -> 模块索引 -> 模块 -> 功能”结构更新相关区域。
-6. 结构调整时，只处理本次任务确认相关的模块和功能；未确认归属的条目标记为 `uncertain` 或保持原位。
-7. 输出同步摘要。
+1. Read the feature route map: default `docs/routespec/feature-routes.md` or `docs/routespec/feature-routes/`.
+2. Collect current task information: actual changed files, `git diff`, test results, execution summary, `plan.md`, `design.md`, user explanation.
+   - If implementation is incomplete or verification has failed, only sync confirmed location changes; when unverified paths exist, they must be marked as `uncertain` — do not output a definite "updated".
+3. Determine whether modification is needed:
+   - Not needed: output the reason, do not modify files.
+   - Needed: update existing feature location entries, or add new feature location entries.
+   - Uncertain whether changes occurred: do not modify files, only output unconfirmed content.
+   - Confirmed changes but some fields unknown: update confirmed information, mark unknown fields as `uncertain`.
+4. Handle deprecated or removed features:
+   - Feature still exists but is not recommended: note in the remarks that it is deprecated.
+   - Feature has been deleted or replaced: delete or move the related location entry; when retention is needed, only record the original entry and replacement feature.
+   - Only move to `feature-routes-archive.md` when the user explicitly requests organizing and archiving.
+5. Modification content should maintain consistency with existing route map entry format; if structural adjustments are needed, update related areas according to `route-init`'s "Project Overview → Module Index → Module → Feature" structure.
+6. During structural adjustments, only process modules and features confirmed as related to the current task; entries with unconfirmed ownership are marked as `uncertain` or kept in place.
+7. Output sync summary.
 
-## 输出格式
+## Output Format
 
 ```md
 # Route Sync Summary
 
-## 结果
-- 已更新 / 无需更新 / partial / uncertain
+## Result
+- Updated / No update needed / partial / uncertain
 
-## 新增功能路由
-- 无 / ...
+## Added Feature Routes
+- None / ...
 
-## 修改功能路由
-- 无 / ...
+## Modified Feature Routes
+- None / ...
 
-## 废弃或移除
-- 无 / ...
+## Deprecated or Removed
+- None / ...
 
-## 文件位置变化
-- 无 / ...
+## File Location Changes
+- None / ...
 
-## 结构调整
-- 无 / 新增模块索引 / 条目移入模块 / 目录索引更新 / ...
+## Structural Adjustments
+- None / Added module index / Entries moved into module / Directory index updated / ...
 
-## 未确认内容
-- 无 / ...
+## Unconfirmed Content
+- None / ...
 
-## 后续建议
-- 无 / 建议人工确认 / 建议再次执行 route-sync 审计模式 ...
+## Follow-up Recommendations
+- None / Recommend manual confirmation / Recommend running route-sync audit mode again ...
 ```
 
-## 审计模式
+## Audit Mode
 
-当用户要求检查路由图是否过期时，先做轻量审计。默认只检查当前任务相关模块；只有用户明确要求全面审计或全量检查时，才逐条检查全部功能定位条目：
+When the user requests checking whether the route map is outdated, perform a lightweight audit first. By default, only check modules related to the current task; only check all feature location entries one by one when the user explicitly requests a comprehensive audit or full check:
 
-1. `核心` 中引用的文件是否存在。
-2. `入口` 描述的位置是否仍与代码匹配。
-3. `测试` 中引用的文件是否存在，是否仍是该功能的关键测试或验证入口。
-4. 是否存在关键测试入口迁移、重命名或删除但未在路由图中反映。
-5. 是否存在已删除或被迁移但未在路由图中反映的功能。
-6. 每个条目是否至少包含可用于下次定位的入口或核心代码位置。
-7. 条目数量较多或模块边界已明确时，是否存在缺少模块索引导致定位困难的问题。
+1. Whether files referenced in `Core` exist.
+2. Whether the locations described in `Entry` still match the code.
+3. Whether files referenced in `Tests` exist and are still the critical test or verification entry points for that feature.
+4. Whether any critical test entry migrations, renames, or deletions have occurred but are not reflected in the route map.
+5. Whether any features have been deleted or migrated but are not reflected in the route map.
+6. Whether each entry contains at least one entry or core code location usable for next-time location lookup.
+7. When the number of entries is large or module boundaries are clear, whether there is a lack of module index causing location difficulty.
 
-全部通过则输出"无需更新"；发现缺失关键定位信息时结果标记为 `partial`，并按本技能正常流程补充已确认信息。发现其他问题后按本技能正常流程更新。不需要单独进入复杂审计流程，除非用户明确要求全面审计。
+If all pass, output "No update needed"; when missing critical location information is found, mark the result as `partial` and supplement confirmed information following this skill's normal process. After discovering other issues, update following this skill's normal process. No need to enter a complex audit process unless the user explicitly requests a comprehensive audit.

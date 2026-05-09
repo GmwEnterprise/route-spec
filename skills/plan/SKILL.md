@@ -1,45 +1,45 @@
 ---
 name: plan
-description: 基于已确认设计或明确需求生成执行计划。适用于 design.md 已确认后，或明确需求需要拆解计划后再实现的场景。
+description: Generate an execution plan based on a confirmed design or clear requirements. Suitable for scenarios after design.md is confirmed, or when clear requirements need to be broken down into a plan before implementation.
 ---
 
 # Plan
 
-把已确认的设计或明确需求转成可执行计划。
+Transform a confirmed design or clear requirements into an executable plan.
 
-## 核心原则
+## Core Principles
 
-- 只规划已确认范围内的修改，不扩展设计范围。
-- 任务顺序必须服务于最小正确实现。
-- 每个任务都应说明涉及文件和验证方式。
-- 判断任务之间的相关性，帮助执行阶段决定顺序、合并或并行。
-- 不重新讨论需求合理性，不重写 `design.md`。
+- Only plan modifications within the confirmed scope; do not expand the design scope.
+- Task order must serve the minimal correct implementation.
+- Each task should specify the files involved and verification method.
+- Determine task relationships to help the execution phase decide on order, merging, or parallelism.
+- Do not re-discuss requirement validity; do not rewrite `design.md`.
 
-## 工作流
+## Workflow
 
-1. 读取已确认的 `design.md`、用户明确需求、`route-lookup` 输出和必要代码上下文。
-2. 确认输入是否足以制定计划；如缺少阻塞信息，每次只提出一个最关键问题，并给出 2-3 个参考选项。
-   - `design.md` 只有在用户明确确认方案后才视为已确认。
-   - 用户直接给出明确需求且无需设计时，可不依赖 `design.md` 生成计划。
-   - 如存在未确认设计且需求并非明确小任务，应停止并请求用户确认后再生成 `plan.md`。
-3. 按依赖顺序拆解执行任务。
-4. 为每个任务分配稳定任务 ID（如 `T1`、`T2`），并列出文件范围、修改目标和完成后的验证方式。
-5. 判断任务之间的相关性：依赖关系、共享文件、共享上下文、可独立验证程度和潜在冲突点。
-6. 判断是否需要 `route-sync`，并写入计划。
-7. 将计划写入任务目录的 `plan.md`，或在用户只需轻量计划时直接输出。
+1. Read the confirmed `design.md`, user's clear requirements, `route-lookup` output, and necessary code context.
+2. Confirm whether the input is sufficient for planning; if blocking information is missing, ask only the most critical question at a time with 2-3 reference options.
+   - `design.md` is only considered confirmed after the user has explicitly confirmed the solution.
+   - When the user provides clear requirements directly without needing design, `design.md` is not required to generate a plan.
+   - If an unconfirmed design exists and the requirements are not clearly a small task, stop and request user confirmation before generating `plan.md`.
+3. Break down execution tasks in dependency order.
+4. Assign stable task IDs (e.g., `T1`, `T2`) to each task, listing file scope, modification objectives, and verification method upon completion.
+5. Determine task relationships: dependencies, shared files, shared context, degree of independent verifiability, and potential conflict points.
+6. Determine whether `route-sync` is needed and include it in the plan.
+7. Write the plan to `plan.md` in the task directory, or output directly when the user only needs a lightweight plan.
 
-## 任务相关性
+## Task Relationships
 
-生成计划时只判断任务之间的相关性，不决定执行者或执行方式。
+When generating a plan, only determine the relationships between tasks; do not decide the executor or execution method.
 
-- 强相关：存在前后依赖、修改同一核心文件、共享同一关键上下文，或需要连续判断才能保持一致。
-- 弱相关：目标相关但文件边界相对清楚，可在某个任务完成后独立处理。
-- 无直接相关：文件和验证边界独立，只需要最终集成检查。
-- 冲突风险：多个任务可能修改同一文件、同一接口、同一测试入口或同一配置。
+- Strongly related: Sequential dependencies, modifications to the same core file, shared critical context, or requiring continuous judgment to maintain consistency.
+- Weakly related: Related objectives but relatively clear file boundaries; can be handled independently after a certain task is completed.
+- No direct relation: File and verification boundaries are independent; only final integration checks are needed.
+- Conflict risk: Multiple tasks may modify the same file, same interface, same test entry, or same configuration.
 
-相关性判断必须服务执行阶段的任务排序、合并执行和冲突规避，不得引入额外实现范围。
+Relationship determinations must serve the execution phase's task ordering, merged execution, and conflict avoidance; they must not introduce additional implementation scope.
 
-## plan.md 精简格式
+## plan.md Concise Format
 
 ```md
 # Execution Plan: {taskName}
@@ -59,7 +59,7 @@ description: 基于已确认设计或明确需求生成执行计划。适用于 
 - Manual checks: ...
 
 ## Task Relationships
-- Strongly related: none / T1 + T2（原因）
+- Strongly related: none / T1 + T2 (reason)
 - Weakly related: none / ...
 - Independent: none / ...
 - Conflict risks: none / ...
@@ -69,23 +69,23 @@ description: 基于已确认设计或明确需求生成执行计划。适用于 
 - Expected updates: ...
 
 ## Risks
-- 无 / ...
+- None / ...
 ```
 
-## 输出要求
+## Output Requirements
 
-- 默认写入与 `design.md` 相同任务目录下的 `plan.md`。
-- 如果没有任务目录，默认使用 `docs/routespec/yyyy-MM-dd-{taskName}/plan.md`。
-- 任务目录命名中，日期使用当天日期；`taskName` 使用简短 kebab-case，中文任务名转成稳定英文或拼音摘要；如目录已存在，追加 `-2`、`-3` 等序号。
-- `plan.md` 是交接给 `exec-plan` 技能的输入文件。
-- `plan.md` 中每个任务必须有稳定任务 ID；任务关系、修复计划和执行摘要必须引用这些 ID。
-- `plan.md` 必须包含任务相关性判断，说明任务之间是否强相关、弱相关、独立或存在冲突风险。
-- 判断后续是否需要 `route-sync`。
+- By default, write to `plan.md` in the same task directory as `design.md`.
+- If no task directory exists, default to `docs/routespec/yyyy-MM-dd-{taskName}/plan.md`.
+- In task directory naming, use the current date; `taskName` should be a short kebab-case string; Chinese task names should be converted to a stable English or pinyin summary; if the directory already exists, append a sequence number like `-2`, `-3`, etc.
+- `plan.md` is the input file handed off to the `exec-plan` skill.
+- Each task in `plan.md` must have a stable task ID; task relationships, fix plans, and execution summaries must reference these IDs.
+- `plan.md` must include task relationship determinations, indicating whether tasks are strongly related, weakly related, independent, or have conflict risks.
+- Determine whether `route-sync` is needed subsequently.
 
-## 结束条件
+## Exit Conditions
 
-- 执行顺序已明确。
-- 每个任务都有文件范围和验证方式。
-- 已判断任务之间的相关性和冲突风险。
-- 已判断 route-sync 需求。
-- 下一步明确指向 `exec-plan` 或等待用户确认。
+- Execution order has been clarified.
+- Each task has file scope and verification method.
+- Task relationships and conflict risks have been determined.
+- Route-sync needs have been determined.
+- Next step clearly points to `exec-plan` or waiting for user confirmation.

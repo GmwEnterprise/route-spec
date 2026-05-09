@@ -1,115 +1,115 @@
 ---
 name: route-init
-description: 首次创建功能路由图，定义格式模板并写入初始条目。仅当功能路由图不存在且当前任务需要代码定位时触发。
+description: Create the feature route map for the first time, define the format template, and write initial entries. Only triggered when the feature route map does not exist and the current task requires code location.
 ---
 
 # Route Init
 
-首次创建功能路由图，定义格式模板并写入初始条目。
+Create the feature route map for the first time, define the format template, and write initial entries.
 
-## 核心原则
+## Core Principles
 
-- 只在路由图不存在时执行首次初始化。
-- 基于当前任务做定向代码扫描，只记录本次任务直接相关的功能，不做全仓库盘点。
-- 仅当当前任务能关联到明确功能、入口或核心代码时写入功能定位条目；如无法确认功能名称或入口，字段标记为 `uncertain`。
-- 如果当前任务不适合生成首个功能条目（如 typo、格式化、依赖升级、纯文档），只创建基础模板并说明原因，不强行写入低质量条目。
-- 功能路由图不是完整索引或功能知识库，只记录下次修改功能时最值得先读的位置。
-- 无法确认的信息写 `未知`、`uncertain` 或直接省略，不得编造。
+- Only perform initial setup when the route map does not exist.
+- Conduct targeted code scanning based on the current task; only record features directly related to the current task — do not perform a full repository inventory.
+- Only write feature location entries when the current task can be associated with clear features, entry points, or core code; if feature names or entry points cannot be confirmed, mark fields as `uncertain`.
+- If the current task is not suitable for generating the first feature entry (e.g., typos, formatting, dependency upgrades, pure documentation), only create the base template and explain the reason — do not force low-quality entries.
+- The feature route map is not a complete index or feature knowledge base; it only records the most valuable locations to read first when modifying a feature next time.
+- Information that cannot be confirmed should be written as `uncertain` or simply omitted — never fabricate.
 
-## 路由图位置
+## Route Map Location
 
-- 默认创建 `docs/routespec/feature-routes.md`，并使用“项目概览 -> 模块索引 -> 模块 -> 功能”的分层结构。
-- 中大型项目、已有清晰业务模块的项目，或预计功能条目会快速增长时，优先使用 `docs/routespec/feature-routes/` 目录模式；小型项目或当前只需少量条目时使用单文件模式。
-- 目录模式下默认按模块使用 kebab-case 文件名，例如 `docs/routespec/feature-routes/user-auth.md`；只有索引显式维护“功能名 -> 路由文件”映射时，才允许使用功能级文件。
-- 目录模式必须维护轻量索引：`docs/routespec/feature-routes/README.md` 或 `docs/routespec/feature-routes/index.md`，记录“模块名 -> 路由文件”的映射；使用功能级文件时必须补充“功能名 -> 路由文件”的映射，便于 lookup 先定位具体文件。
+- By default, create `docs/routespec/feature-routes.md` using the hierarchical structure of "Project Overview → Module Index → Module → Feature".
+- For medium-to-large projects, projects with clear business modules, or projects expected to have rapidly growing feature entries, prefer the `docs/routespec/feature-routes/` directory mode; for small projects or when only a few entries are needed, use the single-file mode.
+- In directory mode, use kebab-case filenames by module by default, e.g., `docs/routespec/feature-routes/user-auth.md`; feature-level files are only allowed when the index explicitly maintains a "feature name → route file" mapping.
+- Directory mode must maintain a lightweight index: `docs/routespec/feature-routes/README.md` or `docs/routespec/feature-routes/index.md`, recording the "module name → route file" mapping; when using feature-level files, a "feature name → route file" mapping must also be added for lookup to locate specific files first.
 
-## 工作流
+## Workflow
 
-1. 确认路由图不存在：检查 `docs/routespec/feature-routes.md` 或 `docs/routespec/feature-routes/`。
-2. 基于当前任务做定向代码扫描，优先源码、入口、配置和测试目录，排除依赖、构建产物、缓存和生成代码。
-3. 使用首次初始化模板创建路由图文件；小型项目默认使用 `docs/routespec/feature-routes.md`，中大型或模块清晰的项目优先使用目录模式。
-4. 如使用目录模式，先创建功能索引文件，再创建匹配当前任务的具体模块文件。
-5. 当前任务能关联到明确功能、入口或核心代码时，写入至少一个功能定位条目；不适合生成条目时只保留基础模板，并说明原因。
-6. 初始化完成后，回到 `route-lookup` 继续 lookup 流程，并将覆盖状态标记为 `partial`。
+1. Confirm that the route map does not exist: check `docs/routespec/feature-routes.md` or `docs/routespec/feature-routes/`.
+2. Conduct targeted code scanning based on the current task, prioritizing source code, entry points, configuration, and test directories; exclude dependencies, build artifacts, caches, and generated code.
+3. Create the route map file using the initial setup template; small projects default to `docs/routespec/feature-routes.md`, while medium-to-large projects or projects with clear modules prefer the directory mode.
+4. If using directory mode, first create the feature index file, then create the specific module file matching the current task.
+5. When the current task can be associated with clear features, entry points, or core code, write at least one feature location entry; when not suitable for generating entries, only keep the base template and explain the reason.
+6. After initialization is complete, return to `route-lookup` to continue the lookup process, marking the coverage status as `partial`.
 
-## 首次初始化模板
-
-```md
-# 功能路由图
-
-## 项目概览
-
-- 应用类型：...
-- 主要入口：`...`
-- 核心目录：`...`
-- 测试入口：`...`
-
-## 模块索引
-
-- {模块名}：{功能名}、{功能名}
-
-## {模块名}
-
-### {功能名}
-
-- 说明：...
-- 入口：`...`
-- 核心：`...`
-- 测试：`...`
-- 备注：...
-```
-
-首次初始化时只能确认少量信息也可以保留分层结构；缺失字段可以省略，不强制填 `N/A`。
-
-## 功能定位条目
-
-每个功能只保留能帮助定位代码的信息：
-
-- 所属模块。
-- 功能名。
-- 一句话说明。
-- 用户入口、外部入口、页面、接口、命令或任务入口。
-- 核心代码位置；业务编排、数据、状态或持久化位置只有影响下次定位时才写入核心或备注。
-- 相关测试或验证位置。
-- 必要备注。
-
-功能定位条目只包含有助于定位代码的信息。状态、类型、变更历史、平台差异、观测调试或关联功能等扩展信息，确实影响定位时合并到一句备注。
-
-## 新增模块模板
+## Initial Setup Template
 
 ```md
-## {模块名}
+# Feature Route Map
 
-### {功能名}
+## Project Overview
 
-- 说明：...
-- 入口：`...`
-- 核心：`...`
-- 测试：`...`
-- 备注：...
+- Application type: ...
+- Main entry: `...`
+- Core directories: `...`
+- Test entry: `...`
+
+## Module Index
+
+- {Module name}: {Feature name}, {Feature name}
+
+## {Module name}
+
+### {Feature name}
+
+- Description: ...
+- Entry: `...`
+- Core: `...`
+- Tests: `...`
+- Notes: ...
 ```
 
-## 新增条目模板
+During initial setup, even if only a small amount of information can be confirmed, the hierarchical structure can be retained; missing fields can be omitted without forcing `N/A`.
+
+## Feature Location Entry
+
+Each feature only retains information that helps locate code:
+
+- Parent module.
+- Feature name.
+- One-line description.
+- User entry, external entry, page, API, command, or task entry point.
+- Core code location; business orchestration, data, state, or persistence locations are only written in core or notes when they affect the next location lookup.
+- Related test or verification locations.
+- Necessary notes.
+
+Feature location entries only contain information that helps locate code. Extended information such as status, type, change history, platform differences, observability/debugging, or related features should be merged into a single note only when it actually affects location lookup.
+
+## New Module Template
 
 ```md
-### {功能名}
+## {Module name}
 
-- 说明：...
-- 入口：`...`
-- 核心：`...`
-- 测试：`...`
-- 备注：...
+### {Feature name}
+
+- Description: ...
+- Entry: `...`
+- Core: `...`
+- Tests: `...`
+- Notes: ...
 ```
 
-缺失字段可以省略，不强制填 `N/A`。如果项目已有更具体的字段命名，可沿用现有命名，但必须保留“模块 -> 功能”的层次。
-
-## 目录模式索引模板
+## New Entry Template
 
 ```md
-# 功能路由索引
+### {Feature name}
 
-- {模块名}: `{module-file}.md`
-  - {功能名}: `{feature-file}.md`（仅使用功能级文件时）
+- Description: ...
+- Entry: `...`
+- Core: `...`
+- Tests: `...`
+- Notes: ...
 ```
 
-索引应优先记录模块到文件的映射；功能较少时可以只列模块，功能较多或跨模块容易混淆时再列具体功能。
+Missing fields can be omitted without forcing `N/A`. If the project already has more specific field naming, the existing naming can be continued, but the "module → feature" hierarchy must be preserved.
+
+## Directory Mode Index Template
+
+```md
+# Feature Route Index
+
+- {Module name}: `{module-file}.md`
+  - {Feature name}: `{feature-file}.md` (only when using feature-level files)
+```
+
+The index should prioritize recording module-to-file mappings; when features are few, only modules can be listed; when features are numerous or cross-module confusion is likely, specific features can be listed.

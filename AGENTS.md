@@ -1,9 +1,11 @@
-RouteSpec 是一套适用于个人开发者的 AI 编码工作流技能组，主要用途：
+## Introduction
 
-- 规范任务执行流程，按任务规模输出设计文档、计划任务书或轻量执行说明
-- 通过功能路由图快速定位功能点对应的核心代码
+RouteSpec is a suite of AI coding workflow skills for individual developers. Its main purposes are:
 
-其他项目使用方式：
+- Standardize task execution workflows, producing design documents, plan task documents, or lightweight execution notes based on task scale
+- Quickly locate core code corresponding to feature points through feature route maps
+
+## Usage for Other Projects
 
 1. `npx skills add https://github.com/GmwEnterprise/route-spec`
-2. 系统提示词中添加一句："编码任务必须先加载 `route-lookup`，再按其指引选择后续流程"
+2. Add the following sentence to the system prompt: "All coding tasks must load `route-lookup` first, then choose subsequent steps based on its guidance"
