@@ -32,15 +32,7 @@
 
 ## 更新
 
-每次启动 OpenCode 时自动从远程仓库拉取最新版本。
-
-锁定特定版本：
-
-```json
-{
-  "plugin": ["route-spec@git+https://github.com/GmwEnterprise/route-spec.git#v1.0.0"]
-}
-```
+移除缓存：`~/.cache/opencode/packages/route-*`
 
 ## 从旧的 `npx skills add` 方式迁移
 
