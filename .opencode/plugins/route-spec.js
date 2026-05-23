@@ -4,6 +4,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Module-level cache for bootstrap content. The SKILL.md file does not change
+// during a session, so reading + parsing it once eliminates redundant
+// fs.existsSync + fs.readFileSync + regex work on every agent step.
+let _bootstrapCache = undefined; // undefined = not yet loaded, null = file missing
+
 const extractBody = (content) => {
   const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
   return match ? match[1] : content;
@@ -13,14 +18,19 @@ export const RouteSpecPlugin = async () => {
   const skillsDir = path.resolve(__dirname, '../../skills');
 
   const getBootstrapContent = () => {
+    if (_bootstrapCache !== undefined) return _bootstrapCache;
+
     const skillPath = path.join(skillsDir, 'using-route-spec', 'SKILL.md');
-    if (!fs.existsSync(skillPath)) return null;
+    if (!fs.existsSync(skillPath)) {
+      _bootstrapCache = null;
+      return null;
+    }
     const content = fs.readFileSync(skillPath, 'utf8');
     const body = extractBody(content);
-    return `<ROUTE_SPEC_IMPORTANT>
-RouteSpec 工作流已加载。
+    _bootstrapCache = `<ROUTE_SPEC_IMPORTANT>
+RouteSpec workflow has been loaded.
 
-**IMPORTANT: 以下内容已加载，无需再次使用 skill 工具加载 "using-route-spec"。**
+**IMPORTANT: The content below has been loaded. Do NOT use the skill tool to load "using-route-spec" again.**
 
 ${body}
 </ROUTE_SPEC_IMPORTANT>`;
