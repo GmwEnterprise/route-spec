@@ -89,3 +89,14 @@ Relationship determinations must serve the execution phase's task ordering, merg
 - Task relationships and conflict risks have been determined.
 - Route-sync needs have been determined.
 - Next step clearly points to `exec-plan` or waiting for user confirmation.
+
+## Anti-Patterns
+
+| Excuse | Reality |
+|---|---|
+| "I'll just figure it out as I go" | Implementation without a plan leads to scope drift, forgotten edge cases, and incomplete verification. A 5-minute plan saves hours of rework. |
+| "The tasks are too interdependent to plan separately" | Interdependence is exactly what task relationships document — sequential deps, shared files, conflict risks. Planning makes the interdependence visible and manageable. |
+| "This is a small plan, I don't need task IDs" | Stable task IDs enable fix plans, review references, and completion tracking. Even 3 tasks benefit from `T1`, `T2`, `T3`. |
+| "I'll write the plan after I finish implementation" | A post-hoc plan documents nothing useful and can't prevent mistakes. Plans serve the implementation, not the record. |
+| "The design already tells me what to do" | Design says what and why. Plan says in what order, with what files, and how to verify each step. They serve different purposes. |
+| "Task relationships are obvious, I'll skip documenting them" | Obvious to you now is not obvious to the sub-agent (or future you) executing the plan. Write them down. |

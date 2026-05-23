@@ -92,3 +92,14 @@ If the options cannot cover the user's intent, the user is allowed to provide a 
 - Objectives, scope, non-objectives, and recommended implementation direction have been clarified.
 - Key files, risks, acceptance criteria, and verification direction have been explained.
 - Next step clearly points to `plan`, `exec-plan` for small clear tasks, or waiting for user confirmation.
+
+## Anti-Patterns
+
+| Excuse | Reality |
+|---|---|
+| "This is too simple to need a design" | Simple features have edge cases and scope creep risks too. A 2-minute design summary catches them before coding. |
+| "I understand what the user wants, let me start coding" | Assumed intent is the #1 source of rework. Confirm scope and behavior first, even briefly. |
+| "I'll figure out the design as I implement" | Inline design mixes two activities (designing + coding) that require different mindsets. Separate them for clarity. |
+| "The user gave clear requirements, no need to clarify" | Clear requirements can still have hidden scope gaps, platform assumptions, or conflicting expectations. Confirm in-scope and out-of-scope items explicitly. |
+| "I'll present all questions at once to save time" | Multi-question dumps overwhelm the user and produce rushed, incomplete answers. One blocking question at a time yields reliable decisions. |
+| "The route-lookup found the files, I know what to change" | Knowing which files to change is not the same as knowing what to change, why, and what the risks are. Design bridges that gap. |
