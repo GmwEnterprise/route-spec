@@ -1,6 +1,6 @@
 ---
 name: route-lookup
-description: Query the feature route map to locate related features, entry files, core code, and tests. Triggered when users ask to code, modify, add, or delete features, or ask questions about code, risks, implementation logic, review feedback, or diagnostic direction. Must be loaded first for all tasks that require code location.
+description: Query the feature route map to locate related features, entry files, core code, and tests. Triggered when users ask to code, modify, add, delete, or fix features, report bugs, test failures, crashes, regressions, unexpected behavior, or ask questions about code, risks, implementation logic, review feedback, or diagnostic direction. Must be loaded first for all tasks that require code location.
 ---
 
 # Route Lookup
@@ -52,10 +52,10 @@ After lookup is complete, the model should internally clarify the following judg
 - Files that should be read first and the reasons
 - Potentially relevant files or files that may need modification, with source markers
 - Route map coverage status: `sufficient` / `partial` / `missing`
-- Task intent: `analysis` / `execution` / `bug-fix` / `uncertain`
+- Task intent: `analysis` / `execution` / `bug-fix`
 - Task type (for execution and bug-fix tasks): `feature-change` / `bug-fix` / `refactor` / `small-edit` / `uncertain`
-- Whether functional changes are involved: `yes` / `no` / `uncertain`
-- Recommended next skill: `none` / `design` / `route-debug` / `exec-plan` / `route-sync` / `route-init`
+- Whether functional changes are involved (execution intent only): `yes` / `no` / `uncertain`
+- Recommended next skill: `none` / `design` / `route-debug` / `exec-plan` / `route-init`
 
 Do not expand scanning scope for the sake of completeness.
 
@@ -83,11 +83,13 @@ After lookup is complete, if subsequent skills need to read this skill's results
 - Temporary scan used: yes / no
 
 ## Task Classification
-- Intent: analysis / execution / bug-fix / uncertain
+- Intent: analysis / execution / bug-fix
 - Task type: feature-change / bug-fix / refactor / small-edit / uncertain
-- Functional change: yes / no / uncertain
+- Functional change (execution only): yes / no / uncertain
 - Need route-sync: yes / no / uncertain
-- Next skill: none / design / route-debug / exec-plan / route-sync / route-init
+
+## Resolved Next Step
+→ {action}  (one of: Load `route-debug` / Load `design` / Load `exec-plan` / Answer directly)
 ```
 
 ## Anti-Patterns
