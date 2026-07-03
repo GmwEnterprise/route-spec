@@ -32,7 +32,9 @@
 
 ## 更新
 
-移除缓存：`~/.cache/opencode/packages/route-*`
+插件内置自动更新：每次启动时检查 GitHub 最新 commit（每天最多一次），发现新版本后自动清除缓存，下次重启时自动拉取最新代码。
+
+如需手动强制更新：移除缓存 `~/.cache/opencode/packages/route-spec*` 后重启。
 
 ## 从旧的 `npx skills add` 方式迁移
 

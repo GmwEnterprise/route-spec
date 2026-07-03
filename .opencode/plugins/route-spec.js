@@ -3,38 +3,60 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkgRoot = path.resolve(__dirname, '../..');
+const cacheParent = path.resolve(pkgRoot, '../..');
+const markerPath = path.join(cacheParent, '.route-spec-version');
 
-// Module-level cache for bootstrap content. The SKILL.md file does not change
-// during a session, so reading + parsing it once eliminates redundant
-// fs.existsSync + fs.readFileSync + regex work on every agent step.
-let _bootstrapCache = undefined; // undefined = not yet loaded, null = file missing
+const REPO_COMMITS_API = 'https://api.github.com/repos/GmwEnterprise/route-spec/commits/main';
+const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
 const extractBody = (content) => {
   const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
   return match ? match[1] : content;
 };
 
-export const RouteSpecPlugin = async () => {
-  const skillsDir = path.resolve(__dirname, '../../skills');
+let _bootstrapCache = undefined;
 
-  const getBootstrapContent = () => {
-    if (_bootstrapCache !== undefined) return _bootstrapCache;
-
-    const skillPath = path.join(skillsDir, 'using-route-spec', 'SKILL.md');
-    if (!fs.existsSync(skillPath)) {
-      _bootstrapCache = null;
-      return null;
-    }
-    const content = fs.readFileSync(skillPath, 'utf8');
-    const body = extractBody(content);
-    _bootstrapCache = `<ROUTE_SPEC_IMPORTANT>
+const loadBootstrap = () => {
+  if (_bootstrapCache !== undefined) return;
+  const skillPath = path.join(pkgRoot, 'skills', 'using-route-spec', 'SKILL.md');
+  if (!fs.existsSync(skillPath)) { _bootstrapCache = null; return; }
+  const content = fs.readFileSync(skillPath, 'utf8');
+  _bootstrapCache = `<ROUTE_SPEC_IMPORTANT>
 RouteSpec workflow has been loaded.
 
 **IMPORTANT: The content below has been loaded. Do NOT use the skill tool to load "using-route-spec" again.**
 
-${body}
+${extractBody(content)}
 </ROUTE_SPEC_IMPORTANT>`;
-  };
+};
+
+loadBootstrap();
+
+(async () => {
+  try {
+    let marker = {};
+    try { marker = JSON.parse(fs.readFileSync(markerPath, 'utf8')); } catch {}
+    if (marker.checked && Date.now() - marker.checked < UPDATE_CHECK_INTERVAL) return;
+
+    const res = await fetch(REPO_COMMITS_API, {
+      headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'route-spec-plugin' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return;
+    const { sha } = await res.json();
+    const prevSha = marker.commit;
+    fs.writeFileSync(markerPath, JSON.stringify({ checked: Date.now(), commit: sha }));
+
+    if (prevSha && prevSha !== sha) {
+      try { fs.rmSync(pkgRoot, { recursive: true, force: true }); } catch {}
+      try { fs.rmSync(path.join(cacheParent, 'package-lock.json'), { force: true }); } catch {}
+    }
+  } catch {}
+})();
+
+export const RouteSpecPlugin = async () => {
+  const skillsDir = path.join(pkgRoot, 'skills');
 
   return {
     config: async (config) => {
@@ -46,7 +68,7 @@ ${body}
     },
 
     'experimental.chat.messages.transform': async (_input, output) => {
-      const bootstrap = getBootstrapContent();
+      const bootstrap = _bootstrapCache;
       if (!bootstrap || !output.messages.length) return;
       const firstUser = output.messages.find(m => m.info.role === 'user');
       if (!firstUser || !firstUser.parts.length) return;
