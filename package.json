@@ -1,6 +1,5 @@
 {
   "name": "route-spec",
-  "version": "1.0.0",
-  "type": "module",
-  "main": ".opencode/plugins/route-spec.js"
+  "version": "2.0.0",
+  "description": "面向中大型项目的、以功能路由图为核心的 AI 编码工作流技能套件"
 }

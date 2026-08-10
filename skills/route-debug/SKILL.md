@@ -1,113 +1,113 @@
 ---
 name: route-debug
-description: Systematic debugging workflow that leverages the feature route map for targeted root cause analysis. Triggered when users report bugs, test failures, unexpected behavior, crashes, or regressions. Load after route-lookup has located relevant code.
+description: 借助功能路由图做系统化根因定位的调试工作流。在 route-lookup 判定为修复任务后加载，对 bug、测试失败、异常行为、崩溃、回归做根因定位；本技能依赖 route-lookup 的优先文件结果，不应在 route-lookup 之前独立加载。
 ---
 
-# Route Debug
+# 路由调试
 
-Systematic debugging that leverages route-lookup results to trace bugs to their root cause before proposing fixes.
+借助 route-lookup 结果做系统化调试，在提出任何修复前把 bug 追溯到根因。
 
-## Core Principles
+## 核心原则
 
-- No fix without root cause investigation first.
-- Route-lookup results determine priority files to examine; don't redo code location.
-- Each phase must be completed before proceeding to the next.
-- Test hypotheses with minimal, single-variable changes; never batch multiple unverified assumptions.
-- When 3+ attempted fixes fail, question the architecture, not the hypothesis. After 2 failed fixes, return to Phase 2 for a deeper root cause re-analysis; if the new fix also fails on the third attempt, the architecture itself may be wrong rather than the hypothesis.
+- 未做根因调查，不修复。
+- route-lookup 结果决定优先查看的文件；不重复做代码定位。
+- 每个阶段须完成后再进入下一阶段。
+- 用最小、单变量的变更验证假设；绝不批量叠加多个未验证假设。
+- 当 3 次及以上修复尝试失败时，质疑架构而非假设。第 2 次失败后回到阶段二做更深的根因再分析；若第 3 次新假设仍失败，可能是架构本身错了，而非假设。
 
-## Workflow
+## 工作流程
 
-### Phase 1: Reproduce and Scope
+### 阶段一：复现与界定
 
-1. Read the `route-lookup` results and related code from Priority Files.
-2. Reproduce the issue: identify exact steps, inputs, or conditions that trigger it.
-3. Determine scope:
-   - What is the actual behavior vs. expected behavior?
-   - Is it a regression (was it working before)?
-   - What inputs, states, or environments reproduce it?
-   - What is the blast radius (affected features, modules, data)?
-4. If unable to reproduce: halt this phase — gather more information from the user, recent changes, logs, or error traces. Do not proceed without reproduction.
+1. 读取 `route-lookup` 结果与"优先文件"中的相关代码。
+2. 复现问题：确定触发它的确切步骤、输入或条件。
+3. 界定范围：
+   - 实际行为 vs 期望行为？
+   - 是否回归（以前正常）？
+   - 哪些输入、状态或环境能复现？
+   - 影响半径（受影响的功能、模块、数据）？
+4. 无法复现：暂停本阶段——向用户、近期变更、日志或错误栈要更多信息。无复现不继续。
 
-### Phase 2: Trace the Data Flow
+### 阶段二：追踪数据流
 
-1. From the reproduction point, trace backward through the call stack to find where behavior diverges from expectation.
-2. Identify the narrowest code path that produces the bug: which function, at which point, with what state.
-3. Compare against any working code path that does similar work but doesn't exhibit the bug (skip if no parallel path exists).
-4. Document the divergence point — the exact file, function, and condition where the bug manifests.
+1. 从复现点沿调用栈回溯，找出行为偏离期望的位置。
+2. 定位产生 bug 的最窄代码路径：哪个函数、在哪一点、带什么状态。
+3. 与不触发 bug 的同类工作路径对比（无并行路径则跳过）。
+4. 记录分歧点——问题显现的确切文件、函数与条件。
 
-### Phase 3: Hypothesize, Test, Confirm
+### 阶段三：假设、验证、确认
 
-1. Form a single root-cause hypothesis supported by evidence from Phase 2.
-2. Test the hypothesis with a minimal diagnostic change or logging:
-   - Add targeted logging or assertions to confirm the hypothesis.
-   - If the hypothesis is wrong, return to Phase 2 with the new evidence.
-3. Once the root cause is confirmed, document the minimal correct change — do not implement the fix here; hand off to `exec-plan` for implementation (see Execution Handoff below).
-4. Ensure the reproduction case from Phase 1 is clearly documented for exec-plan to validate after implementation.
+1. 基于阶段二证据，形成单一根因假设。
+2. 用最小诊断变更或日志验证：
+   - 加定向日志或断言确认假设。
+   - 若假设错误，带新证据回到阶段二。
+3. 根因确认后，记录最小正确变更——此处不实现修复；交由 `exec-plan` 实现（见下方"移交执行"）。
+4. 确保阶段一的复现用例已清晰记录，供 exec-plan 在实现后验证。
 
-## Execution Handoff to exec-plan
+## 移交执行
 
-Before handing off, a fix has been identified but NOT implemented. The debug summary below serves as the execution note for exec-plan.
+移交前，修复已明确但未实现。下面的调试摘要即作为 exec-plan 的执行备注。
 
-When the root cause is understood and the fix is clear:
+根因清楚、修复明确时：
 
-- Small, localized fixes → the `Fix Direction` section of this skill's Output Format serves as a brief execution note; hand off to `exec-plan`.
-- Fixes requiring multi-file changes, new tests, or behavioral adjustments → record findings in `docs/routespec/yyyy-MM-dd-{bug-name}/design.md` (if the fix scope warrants design clarification) and optionally `plan.md`, then hand off to `exec-plan`.
-- If root cause is identified but fix approach is uncertain → load `design` to evaluate approaches.
+- 小而局部的修复 → 本技能输出格式的"修复方向"作为简短执行备注；移交 `exec-plan`。
+- 需多文件改动、新测试或行为调整，但修复方向明确 → 同样以调试摘要作为执行备注移交 `exec-plan`，不直接写 spec.md。
+- 根因已定位但修复方向不明、或修复范围需方案澄清 → 加载 `spec`，由 `spec` 负责创建任务目录与 spec.md（调试摘要作为 spec 的输入）。
 
-## When to Escalate
+## 何时升级
 
-- Reproduction cannot be achieved after thorough investigation → output what is known and recommend user steps.
-- Root cause points to third-party dependency or external system → document evidence and recommend mitigation options.
-- Root cause reveals a design flaw broader than the immediate bug → recommend loading `design` for a broader solution.
+- 充分调查后仍无法复现 → 输出已知信息并建议用户步骤。
+- 根因指向第三方依赖或外部系统 → 记录证据并建议缓解选项。
+- 根因揭示出比当前 bug 更广的设计缺陷 → 建议加载 `spec` 给出更广的方案。
 
-## Anti-Patterns
+## 反模式
 
-| Excuse | Reality |
+| 借口 | 现实 |
 |---|---|
-| "The error message is clear, I know what to fix" | Error messages describe symptoms, not root causes. Fix the symptom without understanding root cause = whack-a-mole. |
-| "This is a simple bug, no need for process" | Simple bugs have simple root causes, but guessing still wastes time. A 3-minute trace is faster than iterating 5 wrong fixes. |
-| "I'll just add a null check there" | Null checks without understanding why something is null hide the real bug and create new ones. Trace first. |
-| "I can reproduce it in my head" | Mental reproduction is unreliable. Actually run the reproduction case. |
-| "I'll fix it as I trace it" | Mixing investigation and fixing muddies the evidence. Understand first, fix second. |
-| "Let me try a few things to narrow it down" | "A few things" = changing multiple variables simultaneously. Change one thing at a time and observe the result. |
+| "错误信息很清楚，我知道改哪" | 错误信息描述的是症状，不是根因。不弄清根因就修症状 = 打地鼠。 |
+| "这是简单 bug，不必走流程" | 简单 bug 根因简单，但瞎猜仍浪费时间。3 分钟追踪快过试 5 个错修复。 |
+| "我在那加个判空就好" | 不理解为何为空就加判空，会掩盖真 bug 并制造新 bug。先追踪。 |
+| "我能在脑子里复现" | 脑内复现不可靠。实际跑一次复现用例。 |
+| "我边追踪边修" | 边查边改会搅浑证据。先理解，后修复。 |
+| "我试几样东西来缩小范围" | "几样东西" = 同时改多个变量。一次只改一个并观察。 |
 
-## Red Flags — Stop and Return to Phase 2
+## 红线——停下并回到阶段二
 
-- You're about to write a fix without being able to reproduce the bug.
-- You've tried 2 different fixes and neither resolved the issue. Return to Phase 2 for deeper analysis; if the next hypothesis also fails, question the architecture.
-- Your fix introduces new test failures.
-- You can't explain why your fix works — you only know that it "seems to work."
-- You're adding guards (null checks, try-catch) without understanding the data flow.
-- You're modifying code outside the files identified in route-lookup without understanding the connection.
+- 即将写修复却无法复现 bug。
+- 已试 2 种不同修复都没解决。回到阶段二做更深分析；若下一个假设也失败，质疑架构。
+- 修复引入了新的测试失败。
+- 解释不了修复为何有效——只知"看起来行了"。
+- 在不理解数据流的情况下加守卫（判空、try-catch）。
+- 在不理解关联的情况下，改 route-lookup 标出的文件之外的代码。
 
-## Internal Decision Checklist
+## 内部判断清单
 
-Before handing off to exec-plan, confirm:
+移交 exec-plan 前，确认：
 
-- [ ] Bug is reproduced.
-- [ ] Data flow is traced to a specific divergence point (file, function, condition).
-- [ ] A single root-cause hypothesis is supported by evidence and confirmed.
-- [ ] The minimal correct change is identified and documented (in Fix Direction).
-- [ ] Reproduction case is prepared for exec-plan to validate the fix.
-- [ ] Next step: hand off to `exec-plan` with the debug summary.
+- [ ] bug 已复现。
+- [ ] 数据流已追踪到具体分歧点（文件、函数、条件）。
+- [ ] 单一根因假设有证据支持并已确认。
+- [ ] 最小正确变更已识别并记录（写在"修复方向"）。
+- [ ] 复现用例已备好，供 exec-plan 验证修复。
+- [ ] 下一步：带调试摘要移交 `exec-plan`。
 
-## Output Format
+## 输出格式
 
 ```md
-# Debug Summary
+# 调试摘要
 
 ## Bug
-- Observed behavior: ...
-- Expected behavior: ...
-- Reproduced: yes / no (steps)
+- 观察到的行为：...
+- 期望的行为：...
+- 已复现：是 / 否（步骤）
 
-## Root Cause
-- Divergence point: `path/to/file:line` — function/condition
-- Explanation: ...
+## 根因
+- 分歧点：`path/to/file:line` —— 函数/条件
+- 说明：...
 
-## Fix Direction
-- Minimal change: ...
-- Affected files: ...
-- Verification: ...
-- Next step: exec-plan / design / escalate
+## 修复方向
+- 最小变更：...
+- 受影响文件：...
+- 验证：...
+- 下一步：exec-plan / spec / 升级
 ```

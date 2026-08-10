@@ -1,108 +1,118 @@
 ---
 name: route-lookup
-description: Query the feature route map to locate related features, entry files, core code, and tests. Triggered when users ask to code, modify, add, delete, or fix features, report bugs, test failures, crashes, regressions, unexpected behavior, or ask questions about code, risks, implementation logic, review feedback, or diagnostic direction. Must be loaded first for all tasks that require code location.
+description: 查询功能路由图，快速定位与当前任务相关的入口文件、核心代码与测试。当用户要求编码、修改、新增、删除、重构功能，报告 bug、测试失败、崩溃、回归、异常行为，或询问代码、风险、实现逻辑、审查意见、诊断方向时触发。需要代码定位的任务建议优先加载本技能。
 ---
 
-# Route Lookup
+# 路由查询
 
-Query the feature route map based on the user's current task to quickly identify which files should be read first.
+根据用户当前任务查询功能路由图，快速判断应优先阅读哪些文件。
 
-## Core Principles
+## 核心原则
 
-- The feature route map takes priority over full repository search.
-- The feature route map is not a complete index or feature knowledge base; it only answers "which files should be read first when a user mentions a specific feature."
-- When the route map exists but has no match, appears outdated, or has insufficient coverage, targeted code scanning is allowed but must be marked as temporary results.
-- Features or file assignments that cannot be confirmed are marked as `uncertain`.
-- When the user is only asking about code questions, risks, implementation logic, review feedback, or diagnostics, lookup is solely for locating priority files; it must not default to entering code modification, design, or execution plan workflows.
-- Bug reports and test failures MUST route to `route-debug`, not directly to `exec-plan` — root cause analysis must come before any fix attempt.
+- 功能路由图优先于全仓搜索。
+- 路由图不是完整索引或功能知识库，只回答"用户提到某个功能时，应先读哪些文件"。
+- 路由图存在但无匹配、显得过时或覆盖不足时，允许有针对性地扫描代码，但结果须标注为临时。
+- 无法确认的功能或文件归属，标注为 `uncertain`。
+- 用户只是询问代码问题、风险、实现逻辑、审查意见或诊断方向时，查询只为定位优先文件，不应直接进入修改、方案或执行流程。
+- bug 报告与测试失败建议进入 `route-debug`，而非直接进入 `exec-plan`——定位根因应先于任何修复尝试。
 
-## Workflow
+## 工作流程
 
-1. Read the feature route map: `docs/routespec/feature-routes.md` or `docs/routespec/feature-routes/`.
-   - In directory mode, first read the feature index in `docs/routespec/feature-routes/README.md` or `docs/routespec/feature-routes/index.md`, then read the specific matched route files.
-   - In directory mode, only when the index is missing, has no match, or appears outdated should you read potentially relevant feature files in the directory; if still unable to confirm, proceed with targeted scanning.
-2. In single-file mode, first read the `Module Index`, then locate related modules based on the feature, module, entry, or file mentioned by the user; then match feature location entries within the module.
-3. In directory mode, first read the module-to-file mapping in the index; if the index lists specific features, prioritize using the feature mapping to locate files; then read the matched module or feature files.
-4. When matching feature location entries, prioritize matching module name, feature name, description, entry, core, tests, and notes.
-5. Determine route map coverage status:
-   - `sufficient`: Can locate main entries and core code; test locations are recorded if they exist.
-   - `partial`: Can locate some information, but key location information is missing or appears outdated.
-   - `missing`: Feature route map exists but has no related entries.
-6. If the feature route map does not exist and the current task requires code location, the `route-init` skill must be loaded first to complete initial setup; after initialization, return to this skill to continue lookup, marking coverage status as `partial`.
-7. Only perform targeted scanning when coverage is `partial` or `missing`, prioritizing source code, entry points, configuration, and test directories; exclude dependencies, build artifacts, caches, and generated code.
-8. Determine task intent and task type:
-   - Analysis task: The user is only asking about code questions, risks, implementation logic, review feedback, or diagnostics. After lookup, read priority files and answer directly; do not load `design` or `exec-plan`.
-   - Execution task: The user explicitly requests coding, modifying, adding, deleting, refactoring, adding tests, or committing changes. This does NOT include bug or test failure reports (those are bug-fix tasks).
-   - Bug-fix task: The user explicitly reports a bug, test failure, crash, regression, or unexpected behavior and wants it fixed. This is a specialized execution task — after lookup, load `route-debug` for root cause analysis; do NOT jump to `exec-plan` or write fixes before understanding the root cause.
-   - When uncertain, treat as an analysis task — first share findings and recommendations; do not proactively modify code. When uncertain whether it's a bug-fix or feature change, treat as bug-fix to ensure root cause is understood first.
-9. For execution tasks (non-bug-fix), continue to determine whether functional changes are involved:
-   - Small, clear modifications (e.g., fixing typos, adjusting formatting, updating dependency versions, or localized feature behavior changes that are already located and low-risk) → proceed to `exec-plan` for direct execution.
-   - Large-scale changes not involving functional changes (e.g., code refactoring, performance optimization, tech stack/framework replacement) → need to load the `design` skill.
-   - Medium-to-large, unclear scope, or functional changes requiring solution confirmation (adding, modifying, deleting feature behavior) → need to load the `design` skill.
-   - When uncertain, treat as needing to load the `design` skill.
-10. Route map linkage:
-    - When coverage status is `partial` or `missing`, check `route-sync` after task completion; only update the route map when the current task confirms changes to feature entries, core implementations, or critical test entry points.
-    - For tasks like typos, formatting, pure documentation, or dependency upgrades that do not produce usable feature location entries, `route-sync` can be determined as `no`, but the reason must be explained.
+1. 读取功能路由图：`docs/routespec/feature-routes.md` 或 `docs/routespec/feature-routes/`。
+   - 目录模式下，先读 `docs/routespec/feature-routes/README.md` 或 `index.md` 中的索引，再读匹配到的具体路由文件。
+   - 目录模式下，仅当索引缺失、无匹配或显得过时时，才读目录中可能相关的功能文件；仍无法确认则进行有针对性扫描。
+2. 单文件模式下，先读"模块索引"，再按用户提到的功能/模块/入口/文件定位相关模块，最后匹配模块内的功能定位条目。
+3. 目录模式下，先读索引中的"模块→文件"映射；若索引列出具体功能，优先用功能映射定位文件，再读匹配到的模块或功能文件。
+4. 匹配功能定位条目时，依次优先匹配模块名、功能名、描述、入口、核心、测试、备注。
+5. 判定路由图覆盖状态：
+   - `sufficient`：能定位主要入口与核心代码；测试位置若存在亦有记录。
+   - `partial`：能定位部分信息，但关键定位信息缺失或显得过时。
+   - `missing`：路由图存在但无相关条目。
+6. 若功能路由图不存在且当前任务需要代码定位，建议加载 `route-sync` 的"首次创建"模式完成初始化；初始化后回到本技能继续查询，覆盖状态记为 `partial`。
+7. 仅当覆盖为 `partial` 或 `missing` 时才进行有针对性扫描，优先源码、入口、配置与测试目录；排除依赖、构建产物、缓存与生成代码。
+8. 判定任务意图与类型：
+   - 分析任务：用户只是询问代码问题、风险、实现逻辑、审查意见或诊断。查询后读优先文件直接作答；不加载 `spec` 或 `exec-plan`。
+   - 执行任务：用户明确要求编码、修改、新增、删除、重构、补测试或提交变更。不含 bug 或测试失败报告（那些属于修复任务）。
+   - 修复任务：用户明确报告 bug、测试失败、崩溃、回归或异常行为并希望修复。查询后建议加载 `route-debug` 做根因分析；在理解根因前不要跳到 `exec-plan` 或写修复。
+   - 意图不明时按分析任务处理——先给出发现与建议，不主动改代码。修复与功能变更拿不准时，按修复任务处理，确保先理解根因。
+9. 对（非修复的）执行任务，继续判断是否涉及功能变更：
+   - 小而明确的修改（修 typo、调格式、升级依赖版本，或已定位、低风险的局部行为调整）→ 进入 `exec-plan` 直接执行。
+   - 不涉及功能变更的大范围改动（重构、性能优化、技术栈/框架替换）→ 建议加载 `spec`。
+   - 中大型、范围不清或需要确认方案的功能变更（新增/修改/删除功能行为）→ 建议加载 `spec`。
+   - 拿不准时按需加载 `spec` 处理。
+10. 路由图联动：
+    - 覆盖为 `partial` 或 `missing` 时，任务完成后建议进行 `route-sync`；仅当本次任务确认改变了功能条目、核心实现或关键测试入口时才更新路由图。
+    - 对 typo、格式、纯文档、依赖升级等不产生可用功能定位条目的任务，可判定 `route-sync` 为 `no`，但需说明理由。
 
-## Internal Decision Checklist
+## 内部判断清单
 
-After lookup is complete, the model should internally clarify the following judgments to determine next steps:
+查询完成后，模型应内部明确以下判断以决定后续：
 
-- Matched related modules / features and their sources (route map / temporary scan / uncertain)
-- Files that should be read first and the reasons
-- Potentially relevant files or files that may need modification, with source markers
-- Route map coverage status: `sufficient` / `partial` / `missing`
-- Task intent: `analysis` / `execution` / `bug-fix`
-- Task type (for execution and bug-fix tasks): `feature-change` / `bug-fix` / `refactor` / `small-edit` / `uncertain`
-- Whether functional changes are involved (execution intent only): `yes` / `no` / `uncertain`
-- Recommended next skill: `none` / `design` / `route-debug` / `exec-plan` / `route-init`
+- 匹配到的相关模块/功能及其来源（路由图/扫描/不确定）
+- 应优先阅读的文件及理由
+- 可能相关或可能需要改动的文件，带来源标记
+- 路由图覆盖状态：`sufficient` / `partial` / `missing`
+- 任务意图：`分析` / `执行` / `修复`
+- 任务类型（执行与修复任务）：`功能变更` / `修复` / `重构` / `小改` / `不确定`
+- 是否涉及功能变更（仅执行意图）：`是` / `否` / `不确定`
+- 建议的下一个技能：`无` / `spec` / `route-debug` / `exec-plan` / `route-sync（首次创建）`
 
-Do not expand scanning scope for the sake of completeness.
+不为追求完整而扩大扫描范围。
 
-## Standard Output Format
+## 标准输出格式
 
-After lookup is complete, if subsequent skills need to read this skill's results, output or record in the following format:
+查询完成后，若后续技能需要读取本技能结果，按以下格式输出或记录：
 
 ```md
-# Route Lookup Result
+# 路由查询结果
 
-## Matched Modules
-- Module name (source: route-map / scan / uncertain): match reason
+## 匹配模块
+- 模块名（来源：路由图 / 扫描 / 不确定）：匹配理由
 
-## Matched Features
-- Feature name (source: route-map / scan / uncertain): match reason
+## 匹配功能
+- 功能名（来源：路由图 / 扫描 / 不确定）：匹配理由
 
-## Priority Files
-- `path/to/file` (source: route-map / scan / uncertain): reason for priority reading
+## 优先文件
+- `path/to/file`（来源：路由图 / 扫描 / 不确定）：优先阅读理由
 
-## Potential Relevant Or Change Files
-- `path/to/file` (source: route-map / scan / uncertain): relevance or potential modification reason
+## 可能相关或需改动文件
+- `path/to/file`（来源：路由图 / 扫描 / 不确定）：相关性或潜在改动理由
 
-## Coverage
-- Status: sufficient / partial / missing
-- Temporary scan used: yes / no
+## 覆盖
+- 状态：sufficient / partial / missing
+- 是否使用临时扫描：是 / 否
 
-## Task Classification
-- Intent: analysis / execution / bug-fix
-- Task type: feature-change / bug-fix / refactor / small-edit / uncertain
-- Functional change (execution only): yes / no / uncertain
-- Need route-sync: yes / no / uncertain
+## 任务分类
+- 意图：分析 / 执行 / 修复
+- 任务类型：功能变更 / 修复 / 重构 / 小改 / 不确定
+- 功能变更（仅执行）：是 / 否 / 不确定
+- 需要 route-sync：是 / 否 / 不确定
 
-## Resolved Next Step
-→ {action}  (one of: Load `route-debug` / Load `design` / Load `exec-plan` / Answer directly)
+## 覆盖状态持久化建议
+- 若覆盖为 partial / missing，建议在后续 route-sync 时把该模块/条目的覆盖状态写入路由图（由 route-sync 实际写入，本技能不直接改文件）。
+
+## 确定的下一步
+→ {动作}（之一：加载 route-debug / 加载 spec / 加载 exec-plan / 直接作答）
 ```
 
-## Anti-Patterns
+## 反模式
 
-| Excuse | Reality |
+| 借口 | 现实 |
 |---|---|
-| "I can find this without the route map" | Route map gives you the exact entry points, skipping needless full-repo search. It's faster and more precise. |
-| "This task is too simple for route-lookup" | Even a single-file edit benefits from knowing which file is the entry point vs. which are downstream dependencies. |
-| "The route map might be outdated, so I'll search directly" | Reading the route map takes seconds. If it's outdated, mark coverage `partial`, scan, and still benefit from the module hierarchy. Then update it via `route-sync`. |
-| "I already know the codebase well" | Route maps persist across sessions. They help the next agent (or future you) jump to the right file immediately. |
-| "I'll read the route map later, let me explore first" | Exploration without the route map wastes tokens and time. Read the map, then explore only if coverage is `partial` or `missing`. |
-| "The user mentioned a feature, but the map has no match — I'll create entries now" | Creating entries without confirmed code changes produces low-quality data. Mark coverage `missing`, scan, and update via `route-sync` after the task is done. |
+| "不用路由图我也能找到" | 路由图给出确切入口，跳过不必要的全仓搜索，更快更准。 |
+| "这任务太简单，不必查询" | 即便是单文件改动，也受益于知道哪个是入口、哪些是下游依赖。 |
+| "路由图可能过时，我直接搜" | 读路由图只需几秒。若过时，标 `partial`、扫描，仍能从模块层级受益，事后再用 route-sync 更新。 |
+| "我对代码库已经很熟" | 路由图跨会话持久。它帮下一个 agent（或未来的你）立刻跳到正确文件。 |
+| "我晚点再读路由图，先探索一下" | 不读路由图就探索，浪费 token 与时间。先读图，仅在 `partial`/`missing` 时才探索。 |
+| "用户提到一个功能但图里没匹配——我现在就建条目" | 未确认代码变更就建条目会产生低质量数据。标 `missing`、扫描，任务完成后再用 route-sync 更新。 |
 
-## First-time Initialization
+## 首次初始化
 
-When the route map does not exist and the current task requires code location, the `route-init` skill must be loaded to complete initial setup. After initialization is complete, continue the lookup process of this skill and mark the coverage status as `partial`. When the route map exists but has no related entries, do not execute `route-init`; instead, perform targeted scanning with `missing` coverage status and check `route-sync` after the task is completed.
+当路由图不存在且当前任务需要代码定位时，建议加载 `route-sync` 的"首次创建"模式完成初始建立。初始化完成后，继续本技能的查询流程，覆盖状态记为 `partial`。当路由图存在但无相关条目时，不要创建新条目，而是以 `missing` 覆盖状态进行有针对性扫描，并在任务完成后检查 `route-sync`。
+
+## 相关技能
+
+- `route-sync`：路由图的养护（首次创建、日常同步、审计、主动补全、轻量 drift 自检）。路由图不存在时用其"首次创建"模式。
+- `route-debug`：bug / 测试失败 / 异常行为的系统化根因定位。
+- `spec`：中大型或范围不清任务的方向确认与可执行拆解。
+- `exec-plan`：执行变更，以"验证门（跑命令读新鲜输出）"为硬性完成依据。
