@@ -1,33 +1,30 @@
 # RouteSpec
 
-面向中大型项目的、以**功能路由图**为核心的 AI 编码工作流技能套件。
+以**功能路由图**为核心的 AI 编码工作流技能套件，面向个人开发者与团队，支持多代码库工作区。路由图回答"改某个功能前应先读哪些文件"，跨会话持续维护；技能工作流服务于它的构建与养护，而非反过来。安装后各技能由 agent 按 `description` 自动匹配触发。
 
-RouteSpec 的差异化价值不是"又一套开发方法论"，而是一份**跨会话持续维护的"功能 → 应先读哪些文件"路由图**。技能工作流服务于这份路由图的构建与养护，而非反过来。
+## 安装与更新
 
-## 安装
-
-通过 [skills](https://github.com/obra/skills) 安装到任意项目：
+通过 [skills CLI](https://vercel-labs-skills.mintlify.app) 安装：
 
 ```bash
 npx skills add https://github.com/GmwEnterprise/route-spec
 ```
 
-安装后技能由各 agent 按其 `description` 自动匹配触发——**无需钩子注入系统提示词**。
+升级：
 
-### 可选：强化为强制入口
+```bash
+npx skills update    # 更新全部已安装技能
+npx skills update -g # 更新全局安装的技能
+```
 
-若希望 agent 在编码类任务中一定先查路由图，可在项目或全局的系统提示词里加一句：
+升级后，既有的 `docs/routespec/feature-routes.md` 单文件路由图仍会被读取（覆盖状态标 `partial`），并在下一次 route-sync 时按迁移指南分批迁移。
 
-> 编码类任务请优先加载 `route-lookup`，再按其指引选择后续技能。
-
-这是可选项，不是必需步骤。
-
-## 技能一览
+## 技能
 
 | 技能 | 作用 |
 |---|---|
-| `route-lookup` | 查询功能路由图，定位与当前任务相关的入口/核心/测试文件，并判定覆盖状态与下一步。 |
-| `route-sync` | 养护路由图：首次创建、日常同步、审计、主动补全（harvest）、轻量 drift 自检。 |
+| `route-lookup` | 查询功能路由图，定位与当前任务相关的核心源码文件，并判定覆盖状态与下一步。 |
+| `route-sync` | 养护路由图：首次创建、日常同步、审计、主动补全（harvest）、轻量 drift 自检、遗留结构迁移。 |
 | `route-debug` | 借助路由图做系统化根因定位的调试工作流（先定位根因，再移交修复）。 |
 | `spec` | 中大型/范围不清任务的方向确认与可执行拆解（单一可选产物 `spec.md`）。 |
 | `exec-plan` | 执行变更，以"验证门（跑命令读新鲜输出）"为唯一硬性完成依据。 |
@@ -39,16 +36,18 @@ npx skills add https://github.com/GmwEnterprise/route-spec
 - 中大型或范围不清 → `route-lookup` → `spec` → `exec-plan`
 - 功能变更完成后 → `route-sync`
 
-路由图不存在时，`route-lookup` 会建议用 `route-sync` 的"首次创建"模式建立。
+路由图不存在时，`route-lookup` 会建议用 `route-sync` 的"首次创建"模式建立。提交由开发者惯用的提交流程完成，提交信息记录任务目录位置。
 
-## 设计取向
+## 路由图
 
-- **路由图是产品**：查询/同步是核心，方案/执行是按需触发的手段。
-- **按需触发**：技能靠 description 自匹配触发，无强制加载顺序。
-- **给所有 loop 写停止条件**：评审默认 1 轮、仅 Critical 进 2 轮；修复上限默认 3 轮。
-- **模型感知**：自验证（第 5 代及以上）模型上关闭冗余自评层，只保留验证门。
-- **单一契约**：技能契约仅由 `skills/*/SKILL.md` 定义，无插件、无系统提示词注入钩子。
+- 统一位于 `docs/routespec/feature-routes/`，`README.md` 是唯一必读入口；小工程条目内联在 README，中大型工程 README 只做"业务域 → 路由文件"索引。
+- 分层始终以业务、功能为维度，不按技术分层或目录结构组织。
+- 条目只标注核心源码文件（1-2 个）。
 
-## 路由图位置
+## 跨工程工作区
 
-默认 `docs/routespec/feature-routes.md`；中大项目可用目录模式 `docs/routespec/feature-routes/`。
+在工作区规则（AGENTS.md、CLAUDE.md 等）中声明本工作区为多代码库共同开发并列明库清单后：
+
+- 路由图与任务目录相对各代码库根独立管理。
+- 跨库任务统一 `spec_name` 与日期，各库各自建立 `docs/routespec/yyyy-MM-dd-{spec_name}/`；工作区根建立 `docs/routespec/yyyy-MM-dd-{spec_name}/collaboration.md` 记录总体要求并关联各库任务目录，不纳入版本管理（工作区根有 git 仓库时加入忽略）。
+- 提交在各库内分别进行，提交信息记录本库任务目录位置。

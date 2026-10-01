@@ -1,11 +1,15 @@
 ## 简介
 
-RouteSpec 是面向个人开发者的 AI 编码工作流技能套件，核心价值有二：
+RouteSpec 是面向个人开发者与团队的 AI 编码工作流技能套件，支持多代码库工作区，核心价值有二：
 
-- 通过**功能路由图**快速定位功能点对应的核心代码
+- 通过**功能路由图**快速定位功能点对应的核心源码文件
 - 按任务规模选择合适的工作流，产出方案文档、执行计划或轻量执行备注
+
+## 本仓库约定
+
+本仓库是技能源码仓库，不建立业务功能路由图。route-lookup 在本仓库的覆盖状态按 `missing` 记录即可，不触发 route-sync 首次创建；任务的 RouteSync 判定为否。
 
 ## 在其它项目使用
 
-1. `npx skills add https://github.com/GmwEnterprise/route-spec`
-2. （可选）若希望强制入口，在系统提示词加一句："编码类任务请优先加载 `route-lookup`，再按其指引选择后续技能。"——此步非必需，技能默认按描述自动匹配触发。
+1. `npx skills add https://github.com/GmwEnterprise/route-spec`，技能按描述自动匹配触发
+2. （可选）多代码库工作区：在工作区规则（AGENTS.md、CLAUDE.md 等）中声明"本工作区为多代码库共同开发"并列明库清单，RouteSpec 将按各库独立管理路由图与任务目录，跨库任务经工作区根 `docs/routespec/yyyy-MM-dd-{spec_name}/collaboration.md` 关联。
