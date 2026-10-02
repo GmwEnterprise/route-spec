@@ -29,4 +29,4 @@
 
 ## 多代码库工作区
 
-- 每个代码库独立迁移自己的路由图；跨库任务目录（collaboration.md）不属于路由图，不参与迁移。
+- 每个代码库独立迁移自己的路由图；跨库任务目录（collaboration.md）与跨工程协同文档（`docs/routespec/cross-repo/`）均不属于路由图，不参与迁移。
