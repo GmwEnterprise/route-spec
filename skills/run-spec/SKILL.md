@@ -1,5 +1,5 @@
 ---
-name: exec-plan
+name: run-spec
 description: 执行 spec.md 或对小而清晰的任务直接实现代码修改（RouteSpec 工作流内）。在 route-lookup、spec 或 route-debug 建议进入编码阶段时加载。
 ---
 

@@ -8,9 +8,9 @@
 
 ## Important
 
-1. **exec-plan 派发"三件套"缺第④项"已知事实"，与 code-reviewer 的四项输入约定不一致**
-   - 位置：`skills/exec-plan/SKILL.md` 第 95-98 行；`agents/code-reviewer.md` 第 3、12-21 行
-   - 问题：code-reviewer 要求四项输入（①需求画像②改动范围③验证状态④已知事实，缺项先补齐再派发）；exec-plan 派发清单仅三件套，按其执行的每次派发都会触发 code-reviewer 缺项中断。
+1. **run-spec 派发"三件套"缺第④项"已知事实"，与 code-reviewer 的四项输入约定不一致**
+   - 位置：`skills/run-spec/SKILL.md` 第 95-98 行；`agents/code-reviewer.md` 第 3、12-21 行
+   - 问题：code-reviewer 要求四项输入（①需求画像②改动范围③验证状态④已知事实，缺项先补齐再派发）；run-spec 派发清单仅三件套，按其执行的每次派发都会触发 code-reviewer 缺项中断。
    - 最小整改方向：派发清单补"已知事实（无则写「无」）"，三件套改四件套。
 
 2. **修复任务经需求澄清后无分流出出口，存在绕过 route-debug 的偏差路径**
@@ -19,19 +19,19 @@
    - 最小整改方向：第 10 步补修复任务 → route-debug 分支（及分析任务 → 直接作答分支）。
 
 3. **调试摘要移交要素清单三处不一致，"复现用例"在下游无显式承接**
-   - 位置：`skills/spec/SKILL.md` 第 25 行（五项）；`skills/exec-plan/SKILL.md` 第 33 行（四项）；`skills/route-debug/SKILL.md` 第 45、91、94-113 行（输出格式无"复现用例"命名字段）
-   - 问题：同一交接面要素清单存在 5/5/4 三个版本；route-debug 要求复现用例供 exec-plan 实现后验证，但输出模板无显式字段、exec-plan 读取清单未列。
+   - 位置：`skills/spec/SKILL.md` 第 25 行（五项）；`skills/run-spec/SKILL.md` 第 33 行（四项）；`skills/route-debug/SKILL.md` 第 45、91、94-113 行（输出格式无"复现用例"命名字段）
+   - 问题：同一交接面要素清单存在 5/5/4 三个版本；route-debug 要求复现用例供 run-spec 实现后验证，但输出模板无显式字段、run-spec 读取清单未列。
    - 最小整改方向：三处统一为同一要素清单（均含复现用例），route-debug 输出格式升格为命名字段。
 
 ## Minor
 
 1. 覆盖状态 `missing` 定义（wiki 存在但无相关页面）与 AGENTS.md 用法（wiki 不存在亦记 missing）错配——`AGENTS.md` 第 10 行。
 2. 路由页打开数量预算两种读法（"最多 2 个"与"顺链再开一页"是否计入上限未消歧）——`skills/route-lookup/SKILL.md` 第 14、28、31 行。
-3. route-sync 收集信息源为裸 `git diff`，缺"或改动文件清单"双轨（exec-plan / code-reviewer 均为双轨）——`skills/route-sync/SKILL.md` 第 78 行。
+3. route-sync 收集信息源为裸 `git diff`，缺"或改动文件清单"双轨（run-spec / code-reviewer 均为双轨）——`skills/route-sync/SKILL.md` 第 78 行。
 4. code-reviewer 将 `docs/integration/` 括注为三类，与 route-sync 六类收录范围不一致——`agents/code-reviewer.md` 第 65 行。
 5. "先读契约"约束面例举四项未含隐式约定/术语定义且未标注非穷尽——`skills/route-lookup/SKILL.md` 第 30 行、`skills/spec/SKILL.md` 第 19 行。
-6. route-debug 内部判断清单固定指向 exec-plan，未覆盖移交 spec 的第三档——`skills/route-debug/SKILL.md` 第 83-92 行。
-7. route-sync 判定枚举中英混用（`yes`/`no`/`uncertain` vs 是/否/不确定），exec-plan 单文件内并存两套——`skills/exec-plan/SKILL.md` 第 47、152、184 行。
+6. route-debug 内部判断清单固定指向 run-spec，未覆盖移交 spec 的第三档——`skills/route-debug/SKILL.md` 第 83-92 行。
+7. route-sync 判定枚举中英混用（`yes`/`no`/`uncertain` vs 是/否/不确定），run-spec 单文件内并存两套——`skills/run-spec/SKILL.md` 第 47、152、184 行。
 
 ## 待确认项裁决（主线程）
 

@@ -8,7 +8,7 @@
 
 ## 范围
 
-- 内：route-lookup 与 route-sync 重写；spec / exec-plan / code-reviewer 的契约接入；迁移指南重写；README / AGENTS / package.json 同步
+- 内：route-lookup 与 route-sync 重写；spec / run-spec / code-reviewer 的契约接入；迁移指南重写；README / AGENTS / package.json 同步
 - 外：route-debug 工作流、任务档案机制、多工程工作区（不恢复）、业务代码本身
 
 ## 假设
@@ -76,7 +76,7 @@
 ### 工作流接入
 
 - spec：`RouteSync` 小节扩展为 RouteSync 与契约影响判定；设计约束须引用在案契约
-- exec-plan：读上下文含任务涉及契约；复查阶段一增契约一致性检查；改动不违反在案契约
+- run-spec：读上下文含任务涉及契约；复查阶段一增契约一致性检查；改动不违反在案契约
 - code-reviewer：跨端与文档清单的契约比对明确指向 `docs/integration/`；输入约定增列契约文档路径
 
 ## 实现方向
@@ -85,7 +85,7 @@
 2. route-lookup 重写查询流程（index → 页 → 代码、miss 回填）
 3. 迁移指南重写：feature-routes → wiki 收缩式收割——提取页面名、核心、可提炼别名建页；散文正文弃；确有契约价值的段落改写为条款式并入 `docs/integration/`
 4. spec 接入契约影响判定
-5. exec-plan 与 code-reviewer 接入契约
+5. run-spec 与 code-reviewer 接入契约
 6. README / AGENTS / package.json 同步
 7. 技能正文一律绝对陈述当前状态，不写版本对照
 
@@ -102,7 +102,7 @@
 - `skills/route-sync/SKILL.md`（重写）
 - `skills/route-sync/references/migration.md`（重写）
 - `skills/spec/SKILL.md`（契约影响接入）
-- `skills/exec-plan/SKILL.md`（契约读写与复查接入）
+- `skills/run-spec/SKILL.md`（契约读写与复查接入）
 - `agents/code-reviewer.md`（契约输入）
 - `README.md`、`AGENTS.md`、`package.json`（同步）
 
@@ -127,7 +127,7 @@
 
 - 任意角度词汇（业务场景 / 架构场景 / 代码场景）经 index 一次读取命中页面，再开 ≤ 2 个页面即拿到核心文件与契约引用
 - lint 可检出 9 项清单全部条目
-- 契约闭环成立：spec 判定 → exec-plan 遵守 → reviewer 比对 → 冲突不静默
+- 契约闭环成立：spec 判定 → run-spec 遵守 → reviewer 比对 → 冲突不静默
 - 技能正文全部为绝对陈述
 
 ## 任务
@@ -148,8 +148,8 @@
   - 文件：`skills/spec/SKILL.md`
   - 改动：RouteSync 小节扩展、设计约束引用在案契约
   - 验证：契约判定路径与 route-sync 一致
-- [x] T5：exec-plan 与 code-reviewer 契约接入
-  - 文件：`skills/exec-plan/SKILL.md`、`agents/code-reviewer.md`
+- [x] T5：run-spec 与 code-reviewer 契约接入
+  - 文件：`skills/run-spec/SKILL.md`、`agents/code-reviewer.md`
   - 改动：契约读写、复查清单、评审输入
   - 验证：与 T4 契约流程闭合
 - [x] T6：README / AGENTS / package.json 同步

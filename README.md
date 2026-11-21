@@ -35,7 +35,7 @@ npx skills update -g # 更新全局安装的技能
 | `route-sync` | 养护路由 wiki 与契约文档：首次创建、日常同步、自检（lint）、遗留结构迁移。 |
 | `route-debug` | 借助路由 wiki 查询结果做系统化根因定位的调试工作流（先定位根因，再移交修复）。 |
 | `spec` | 中大型/范围不清任务的方向确认与可执行拆解（单一可选产物 `spec.md`）。 |
-| `exec-plan` | 执行变更，以"验证门（跑命令读新鲜输出）"为唯一硬性完成依据。 |
+| `run-spec` | 执行变更，以"验证门（跑命令读新鲜输出）"为唯一硬性完成依据。 |
 
 ## 审查子代理
 
@@ -47,9 +47,9 @@ npx skills update -g # 更新全局安装的技能
 
 ## 工作流
 
-- 小而明确的修改 → `route-lookup` → `exec-plan`
-- bug / 测试失败 / 异常行为 → `route-lookup` → `route-debug` →（局部修复 `exec-plan`；范围不清或广则 `spec` → `exec-plan`）
-- 中大型或范围不清 → `route-lookup` → `spec` → `exec-plan`
+- 小而明确的修改 → `route-lookup` → `run-spec`
+- bug / 测试失败 / 异常行为 → `route-lookup` → `route-debug` →（局部修复 `run-spec`；范围不清或广则 `spec` → `run-spec`）
+- 中大型或范围不清 → `route-lookup` → `spec` → `run-spec`
 - 功能变更完成后 → `route-sync`
 
 路由 wiki 不存在时，`route-lookup` 会建议用 `route-sync` 的"首次创建"模式建立。提交由开发者惯用的提交流程完成，提交信息记录任务目录位置。
