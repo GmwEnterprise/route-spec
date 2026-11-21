@@ -6,7 +6,7 @@
 
 1. 是否支撑设计目标：
    - 通过路由 wiki 以任意角度词汇定位核心代码与契约文档
-   - 按任务规模进入 route-lookup / spec / run-spec / route-sync（bug 与异常走 route-debug）
+   - 按任务规模分流：小而明确者在会话内直接执行，其余经 route-lookup / spec / run-spec，养护走 route-sync（bug 与异常走 route-debug）
 2. 各技能的 description 与正文是否存在会影响使用的严重问题：
    - 触发条件不清
    - 技能边界冲突
